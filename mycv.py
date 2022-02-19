@@ -5,7 +5,8 @@ from itertools import combinations
 from sklearn.model_selection import (
     KFold,
     StratifiedKFold,
-    GroupKFold
+    GroupKFold,
+    TimeSeriesSplit
 )
 
 class CombinatorialPurgedGroupKFold():
@@ -101,4 +102,14 @@ def get_groupkfold(train, target_col, group_col, n_splits):
     for fold, (idx_train, idx_valid) in enumerate(kf_generator):
         fold_series.append(pd.Series(fold, index=idx_valid))
     fold_series = pd.concat(fold_series).sort_index()
+    return fold_series
+
+def get_timeseriesfold(train, n_splits):
+    fold_series = []
+    kf = TimeSeriesSplit(n_splits=n_splits)
+    kf_generator = kf.split(train)
+    for fold, (idx_train, idx_valid) in enumerate(kf_generator):
+        fold_series.append(pd.Series(fold, index=idx_valid))
+    fold_series = pd.concat(fold_series).sort_index()
+    fold_series = pd.concat([pd.Series(-np.ones(len(train)-len(fold_series)), dtype=np.int64), fold_series])
     return fold_series
